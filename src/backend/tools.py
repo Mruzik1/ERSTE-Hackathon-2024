@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv, find_dotenv
 import pandas as pd
 from datetime import datetime, timedelta
@@ -51,14 +52,8 @@ def get_num_recent_receipts(period_and_unit: str) -> str:
     return "\nFile saved successfuly to '../../data/test.csv'\n"
 
 
-if __name__ == "__main__":
+def infer_llm(query):
     tools = [get_num_recent_receipts]
-    # prompt = hub.pull("hwchase17/react")
-    # llm = ChatOpenAI(
-    #     base_url="http://localhost:5555/v1",
-    #     temperature=0,
-    #     api_key="lm-studio"
-    # )
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-pro",
         temperature=0,
@@ -66,5 +61,13 @@ if __name__ == "__main__":
     )
     agent = create_react_agent(llm, tools, PROMPT_DATE)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-    res = agent_executor.invoke({"input": "Give me receipts from the past 2 months."})
-    print(res)
+    res = agent_executor.invoke({"input": query})
+    path = re.findall(r"'(.*?)'", res["output"])
+    if len(path) == 0:
+        return res["output"]
+    return path[0]
+
+
+if __name__ == "__main__":
+    output = infer_llm("Give me receipts from the past 2 months.")
+    print(output)
