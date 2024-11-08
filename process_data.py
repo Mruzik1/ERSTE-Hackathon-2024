@@ -38,7 +38,7 @@ if __name__ == "__main__":
     org_df.drop(["color", "image", "image_content_type"], axis=1, inplace=True)
     org_df["created_date"] = pd.to_datetime(org_df["created_date"], errors='coerce')
     org_df["last_modified_date"] = pd.to_datetime(org_df["last_modified_date"], errors='coerce')
-    get_nan_count(org_df)
+    # get_nan_count(org_df)
     print(org_df.head())
 
     # Product items processing / analysis
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     ], axis=1, inplace=True)
     prod_it_df["product_id"] = prod_it_df["product_id"].astype(int)
     prod_it_df["fs_receipt_id"] = prod_it_df["fs_receipt_id"].astype(int)
-    get_nan_count(prod_it_df)
+    # get_nan_count(prod_it_df)
     print(prod_it_df.head())
 
     # Products processing / analysis
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     prods_df["is_overridden"] = prods_df["is_overridden"].replace("b'\\x00'", 0)
     prods_df["is_overridden"] = prods_df["is_overridden"].replace("b'\\x01'", 1)
     print(prods_df.head())
-    get_nan_count(prods_df)
+    # get_nan_count(prods_df)
 
     # Receipts processing / analysis
     print("Receipts:")
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     receipts_df["created_date"] = pd.to_datetime(receipts_df["created_date"], errors='coerce')
     receipts_df["last_modified_date"] = pd.to_datetime(receipts_df["last_modified_date"], errors='coerce')
     receipts_df["organization_id"] = receipts_df["organization_id"].astype(int)
-    get_nan_count(receipts_df)
+    # get_nan_count(receipts_df)
     print(receipts_df.head())
