@@ -1,0 +1,40 @@
+body {
+    padding: 0;
+    margin: 0;
+    background-color: #000;
+}
+
+.key-tag {
+    color: #D9DAD8;
+    font-weight: bold;
+    letter-spacing: 7px;
+    cursor: pointer;
+    display: inline-block; /* Для поддержки эффекта наведения */
+    position: relative; /* Для возможного использования псевдо-элементов */
+    transition: color 0.5s linear, text-shadow 0.5s linear; /* Плавное изменение цвета и тени */
+}
+
+.key-tag::before, .key-tag::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: transparent;
+    transition: transform 0.5s linear;
+}
+
+.key-tag:hover {
+    color: #fff;
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #fff;
+}
+
+/* Добавьте эффекты для ::before и ::after, если нужно имитировать разделение или движение текста при наведении */
+.key-tag:hover::before {
+    transform: translateX(-10px); /* Пример эффекта сдвига */
+}
+
+.key-tag:hover::after {
+    transform: translateX(10px); /* Пример эффекта сдвига */
+}
