@@ -5,15 +5,11 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 from langchain.tools import tool
-from langchain import hub
-from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents.react.agent import create_react_agent
 from langchain.agents.agent import AgentExecutor
-from langchain.agents.react.output_parser import ReActOutputParser
 
 from prompts import PROMPT_DATE
-from parser import CustomOutputParser
 
 load_dotenv(find_dotenv())
 LLM_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -23,7 +19,7 @@ TODAY = datetime(2024, 11, 8)
 @tool
 def get_num_recent_receipts(period_and_unit: str) -> str:
     """
-    Get a number of rows (receipts) within a specified period from today.
+    Get rows (receipts) within a specified period from today as a file, return a path to the file.
     
     Parameters:
     - period_and_unit (str): A combination of 2 values separated by comma (without a space).
@@ -49,7 +45,10 @@ def get_num_recent_receipts(period_and_unit: str) -> str:
         raise ValueError(f"Invalid unit '{unit}'. Unit must be 'days', 'months', or 'years'.")
 
     filtered_df = dataframe[(dataframe['created_date'] >= start_date) & (dataframe['created_date'] <= TODAY)]
-    return f"\nNumber of receipts: {len(filtered_df)}\n"
+    with open("../../data/test.csv", "w", encoding="utf-8") as f:
+        filtered_df.to_csv(f)
+
+    return "\nFile saved successfuly to '../../data/test.csv'\n"
 
 
 if __name__ == "__main__":
@@ -67,5 +66,5 @@ if __name__ == "__main__":
     )
     agent = create_react_agent(llm, tools, PROMPT_DATE)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-    res = agent_executor.invoke({"input": "Give me receipts from the past 4 months."})
+    res = agent_executor.invoke({"input": "Give me receipts from the past 2 months."})
     print(res)
