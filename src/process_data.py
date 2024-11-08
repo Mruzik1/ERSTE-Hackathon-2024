@@ -22,7 +22,7 @@ def get_nan_count(df: pd.DataFrame) -> dict[str, int]:
 
 
 if __name__ == "__main__":
-    data_folder = "./data"
+    data_folder = "../data"
     data_files = [
         f"{data_folder}/Organizations.csv",
         # f"{data_folder}/ProductCategories.csv",
