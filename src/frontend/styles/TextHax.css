@@ -1,0 +1,11 @@
+.panel {
+  position: relative; /* Это обеспечит правильное позиционирование z-index */
+}
+
+.panel-fiol {
+  z-index: 2; /* Более высокий z-index для фиолетовой панели */
+}
+
+.panel-blue {
+  z-index: 1; /* Ниже z-index для синей панели */
+}

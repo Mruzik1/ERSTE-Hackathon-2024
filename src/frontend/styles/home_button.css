@@ -1,0 +1,23 @@
+/* From Uiverse.io by Custyyyy */ 
+#bottone1 {
+    padding-left: 33px;
+    padding-right: 33px;
+    padding-bottom: 16px;
+    padding-top: 16px;
+    border-radius: 9px;
+    background: #FF6D40;
+    border: none;
+    font-family: inherit;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.4s;
+   }
+   
+   #bottone1:hover {
+    box-shadow: 20px 5px 56px -3px #FF6D40;
+   }
+   
+   #bottone1:active {
+    transform: scale(0.97);
+    box-shadow: 20px 5px 56px -4px #FF6D40;
+   }

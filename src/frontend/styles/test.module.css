@@ -1,0 +1,11 @@
+.circle {
+  --circle-size: 10px;
+  position: fixed;
+  height: var(--circle-size);
+  width: var(--circle-size);
+  border: 15px solid #D9DAD8;
+  border-radius: 200%;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  z-index: 99999;
+}
