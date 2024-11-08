@@ -1,0 +1,46 @@
+@font-face {
+    font-family: 'LilGrotesk Bold';
+    src: url('/fonts/LilGrotesk-Bold.otf') format('opentype');
+}
+@font-face {
+    font-family: 'LilGrotesk Regular';
+    src: url('/fonts/LilGrotesk-Regular.otf') format('opentype');
+}
+@font-face {
+    font-family: 'My_69';
+    src: url('/fonts/behance-637fcbadf169d.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'My_38';
+    src: url('/fonts/Herbert.ttf') format('opentype');
+}
+
+
+@font-face {
+    font-family: 'viola';
+    src: url('/fonts/VIOLA.ttf') format('opentype');
+}
+
+
+.font-viola {
+    font-family: "viola";
+}
+
+
+
+.font-face-lb {
+    font-family: "LilGrotesk Bold";
+}
+
+.font-face-lr {
+    font-family: "LilGrotesk Regular";
+}
+
+.font-face-my69 {
+    font-family: "My_69";
+}
+
+.font-face-my38 {
+    font-family: "My_38";
+}
