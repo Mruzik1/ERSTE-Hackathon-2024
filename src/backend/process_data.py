@@ -22,7 +22,7 @@ def get_nan_count(df: pd.DataFrame) -> dict[str, int]:
 
 
 if __name__ == "__main__":
-    data_folder = "../data"
+    data_folder = "../../data"
     data_files = [
         f"{data_folder}/Organizations.csv",
         # f"{data_folder}/ProductCategories.csv",
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     receipts_df["created_date"] = pd.to_datetime(receipts_df["created_date"], errors='coerce')
     receipts_df["last_modified_date"] = pd.to_datetime(receipts_df["last_modified_date"], errors='coerce')
     receipts_df["organization_id"] = receipts_df["organization_id"].astype(int)
-    # get_nan_count(receipts_df)
+    get_nan_count(receipts_df)
     print(receipts_df.head())
