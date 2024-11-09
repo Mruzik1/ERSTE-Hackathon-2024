@@ -19,7 +19,9 @@ from prompts import PROMPT_DATE
 import numpy as np
 
 load_dotenv(find_dotenv())
+LLM_API_KEY = os.environ.get("GEMINI_API_KEY")
 TODAY = datetime(2024, 11, 8)
+
 
 @tool
 def get_num_recent_receipts(period_and_unit: str) -> str:
@@ -100,6 +102,7 @@ def get_max_category_spending(period_and_unit: str) -> str:
     # Format the result
     result = f"\nThe most spent in category {category_spend}\n"
     return result
+
 
 @tool
 def visualize_top_5(period_and_unit: str) -> str:
@@ -200,6 +203,7 @@ def get_total_spend(period_and_unit: str) -> str:
     
     return f"Total spend in the past {period} {unit}: ${total_spend:,.2f}"
 
+
 @tool
 def get_average_spend(period_and_unit: str) -> str:
     """
@@ -242,6 +246,7 @@ def get_average_spend(period_and_unit: str) -> str:
     else:
         return f"No receipts found in the past {period} {unit}."
 
+
 @tool
 def get_highest_transaction(period_and_unit: str) -> str:
     """
@@ -283,6 +288,7 @@ def get_highest_transaction(period_and_unit: str) -> str:
         return f"\nHighest transaction in the past {period} {unit}: ${highest_transaction:,.2f}\n"
     else:
         return f"No transactions found in the past {period} {unit}."
+
 
 @tool
 def detect_spend_outliers(period_and_unit: str) -> str:
@@ -346,6 +352,7 @@ def detect_spend_outliers(period_and_unit: str) -> str:
     
     return result
 
+
 @tool
 def plot_rolling_average_spend(period_and_unit: str) -> str:
     """
@@ -404,6 +411,7 @@ def plot_rolling_average_spend(period_and_unit: str) -> str:
     plt.close()
     
     return f"\nRolling average spend chart saved to ../../data/rolling_average_spend.png.\n"
+
 
 def infer_llm(query):
     tools = [
