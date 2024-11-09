@@ -1,6 +1,8 @@
+import os
 from flask import Flask, render_template, request, stream_with_context, Response, redirect, url_for, session, jsonify
 from flask_cors import CORS
 from model import get_response_stream
+from tools import infer_llm
 import json
 
 app = Flask(__name__)
@@ -11,7 +13,7 @@ def chat():
     @stream_with_context
     def generate_response():
         prompt = request.form['prompt']
-        for response_chunk in get_response_stream(prompt):
+        for response_chunk in infer_llm(prompt):
             yield response_chunk
             
     return Response(generate_response(), content_type='text/event-stream')

@@ -7,16 +7,18 @@ from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 
 from langchain.tools import tool
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI, HarmBlockThreshold, HarmCategory
 from langchain.agents.react.agent import create_react_agent
 from langchain.agents.agent import AgentExecutor
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.memory import ConversationBufferWindowMemory
+from langchain.agents import load_agent, AgentType, initialize_agent, Tool, AgentExecutor, create_react_agent
 
 from prompts import PROMPT_DATE
 
 import numpy as np
 
 load_dotenv(find_dotenv())
-LLM_API_KEY = os.environ.get("GEMINI_API_KEY")
 TODAY = datetime(2024, 11, 8)
 
 @tool
@@ -404,19 +406,51 @@ def plot_rolling_average_spend(period_and_unit: str) -> str:
     return f"\nRolling average spend chart saved to ../../data/rolling_average_spend.png.\n"
 
 def infer_llm(query):
-    tools = [get_num_recent_receipts, plot_rolling_average_spend, get_max_category_spending, visualize_top_5, get_total_spend,get_average_spend,get_highest_transaction,detect_spend_outliers]
+    tools = [
+        get_num_recent_receipts,
+        plot_rolling_average_spend,
+        get_max_category_spending,
+        visualize_top_5,
+        get_total_spend,
+        get_average_spend,
+        get_highest_transaction,
+        detect_spend_outliers
+    ]
+    
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-pro",
         temperature=0,
-        api_key=LLM_API_KEY
+        api_key=LLM_API_KEY,
+        disable_streaming=False,
+        callbacks=[StreamingStdOutCallbackHandler()],
+        safety_settings={
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_TOXICITY: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_VIOLENCE: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DEROGATORY: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        },
     )
     agent = create_react_agent(llm, tools, PROMPT_DATE)
+    
+    def stream_response(response):
+        for token in response.split():
+            yield token + " "
+    
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-    res = agent_executor.invoke({"input": query})
-    path = re.findall(r"'(.*?)'", res["output"])
+    result = agent_executor.stream({"input": query})
+    
+    path = re.findall(r"'(.*?)'", result["output"])
     if len(path) == 0:
-        return res["output"]
-    return path[0]
+        for token in result["output"]:
+            yield token
+    else:
+        for token in path[0]:
+            yield token
 
 
 if __name__ == "__main__":
