@@ -1,21 +1,14 @@
 import React, { useEffect } from 'react';
 import $ from 'jquery';
-import { marked } from 'marked';
-import '@styles/glass.css';
+import '@styles/dashboard.css';
 
 function scrollToBottom() {
   var messageBody = document.getElementById('messageFormeight');
   messageBody.scrollTop = messageBody.scrollHeight;
 }   
-   
+
 function Dashboard() {
   useEffect(() => {
-    marked.setOptions({
-      breaks: true,
-      gfm: true,
-      sanitize: false,
-    });
-
     // Обработчик отправки формы
     $('#messageArea').on('submit', function (event) {
       event.preventDefault(); // Предотвращаем стандартное поведение формы
@@ -57,7 +50,7 @@ function Dashboard() {
       scrollToBottom();
 
       // Отправляем сообщение пользователя на сервер
-      fetch('/chat', {
+      fetch('http://localhost:5000/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -79,16 +72,10 @@ function Dashboard() {
 
               // Декодируем полученные данные
               const chunk = decoder.decode(value, { stream: true });
-              console.log('Chunk received:', chunk);
+              console.log('Chunk received:', chunk);  
               result += chunk;
 
-              // Парсим Markdown с помощью marked.js
-              const markdownContent = marked(result);
-
-              // Обновляем контейнер ответа бота
-              $('#' + botResponseId).html(
-                markdownContent + '<span class="msg_time">' + str_time + '</span>'
-              );
+              $("#" + botResponseId).html(result + '<span class="msg_time">' + str_time + '</span>');
 
               scrollToBottom();
 
@@ -107,29 +94,45 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className='gradient-background w-full h-full'>
-      <div className='w-full flex flex-col pt-[30vh] justify-center items-center '>
+    <><>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.2.9/dist/purify.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+      integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+      crossorigin="anonymous" /><link
+        rel="stylesheet"
+        href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"
+        integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU"
+        crossorigin="anonymous" /><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        </>
+        <div className='gradient-background w-full h-full'>
+          <div class="row justify-content-center h-100">
+            <div class="col-md-11 col-xl-6 chat">
+              <div class="card">
+                <div class="card-header msg_head">
+                  <p> <span className='text-[#FF6D40]'>AI</span> Assistant </p>
+                </div>
 
-        <div className='frosted-glass-small gap-7 flex flex-col p-16 px-28  rounded-xl border-2 border-[#FF6D40]'>
-          <div className='flex flex-col gap-2 font-extrabold text-7xl text-center text-[#2f2f2f]'>
-            <p> <span className='text-[#FF6D40]'>AI</span> Chat </p>
-            <p>Assistent</p>
-          </div>
-
-          <div className='max-w-6xl p-5 mt-5 border-2  border-[#FF6D40] bg-white rounded-3xl'>
-            <form id="messageArea" className='flex gap-x-16'>
-              <input type="text" id="text" placeholder="Введите сообщение..." />
-              <button type="submit" className='border-1 text-lg text-white uppercase p-3 rounded-3xl bg-[#FF6D40]'>send messages </button>
-            </form>
-            <div id="messageFormeight">
-              {/* Здесь будут отображаться сообщения */}
+                <div id="messageFormeight" class="card-body msg_card_body">
+                  {/* Здесь будут отображаться сообщения */}
+                </div>
+                <div class="card-footer">
+                  <form id="messageArea" class="input-group">
+                    <input type="text" id="text" name="msg" class="form-control type_msg" placeholder="Введите сообщение..." autoComplete='off' required />
+                    <div class="input-group-append">
+                      <button type="submit" id="send" class="input-group-text send_btn">
+                        <i class="fas fa-location-arrow"></i>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
-
         </div>
-
-      </div>
-    </div>
+      </>
   );
 }
 

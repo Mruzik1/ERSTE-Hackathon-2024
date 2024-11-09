@@ -13,8 +13,9 @@ def chat():
         prompt = request.form['prompt']
         for response_chunk in get_response_stream(prompt):
             yield response_chunk
+            
     return Response(generate_response(), content_type='text/event-stream')
 
 
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=5000)
+    app.run(host="localhost", port=5000)
