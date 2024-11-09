@@ -13,10 +13,11 @@ from langchain.agents.agent import AgentExecutor
 
 from prompts import PROMPT_DATE
 
+import numpy as np
+
 load_dotenv(find_dotenv())
 LLM_API_KEY = os.environ.get("GEMINI_API_KEY")
 TODAY = datetime(2024, 11, 8)
-
 
 @tool
 def get_num_recent_receipts(period_and_unit: str) -> str:
@@ -72,7 +73,7 @@ def get_max_category_spending(period_and_unit: str) -> str:
     if 'created_date' not in dataframe.columns or \
        'total_price' not in dataframe.columns or \
        'category' not in dataframe.columns:
-        raise ValueError("DataFrame must contain 'created_date', 'amount', and 'category' columns.")
+        raise ValueError("DataFrame must contain 'created_date', 'total_price', and 'category' columns.")
     
     # Convert the created_date column to datetime
     dataframe['created_date'] = pd.to_datetime(dataframe['created_date'])
@@ -89,7 +90,7 @@ def get_max_category_spending(period_and_unit: str) -> str:
     
     # Filter receipts by date range
     filtered_df = dataframe[(dataframe['created_date'] >= start_date) & (dataframe['created_date'] <= TODAY)]
-    
+
     # Group by category and calculate the total spending
     categories_spend = filtered_df.groupby('category')['total_price'].sum().sort_values(ascending=False).items()
     category_spend = [c[0] for c in categories_spend][0]
@@ -117,7 +118,7 @@ def visualize_top_5(period_and_unit: str) -> str:
     if 'created_date' not in dataframe.columns or \
        'total_price' not in dataframe.columns or \
        'category' not in dataframe.columns:
-        raise ValueError("DataFrame must contain 'created_date', 'amount', and 'category' columns.")
+        raise ValueError("DataFrame must contain 'created_date', 'total_price', and 'category' columns.")
     
     # Convert the created_date column to datetime
     dataframe['created_date'] = pd.to_datetime(dataframe['created_date'])
@@ -140,20 +141,270 @@ def visualize_top_5(period_and_unit: str) -> str:
 
     # Plotting
     plt.figure(figsize=(10, 6))
-    plt.bar(top_5_categories.index, top_5_categories.values)
+    bars = plt.bar(range(1, 6), top_5_categories.values)
+
+    # Adding the category names to the legend
+    for i, (category, value) in enumerate(top_5_categories.items(), start=1):
+        plt.bar(i, value, label=f"{i}. {category}")
+
     plt.xlabel('Category')
     plt.ylabel('Total Spend')
     plt.title('Top 5 Spending Categories')
-    plt.xticks(rotation=45)
+    plt.xticks(range(1, 6), [str(i) for i in range(1, 6)])
+    plt.legend(title="Categories")
     plt.tight_layout()
     plt.savefig("../../data/top_5_categories.png")
 
     return "\nFile saved successfuly to '../../data/top_5_categories.png\n"
+    
 
+@tool
+def get_total_spend(period_and_unit: str) -> str:
+    """
+    Calculates the total spend within a specified period.
+    
+    Parameters:
+    - period_and_unit (str): A combination of 2 values separated by a comma (without a space).
+        - period: The number of days, months, or years for the date filter.
+        - unit: The time unit for the period, either "days", "months", or "years".
+    """
+    with open("../../data/Receipts.csv", "r", encoding="utf-8") as f:
+        dataframe = pd.read_csv(f)
+        
+    period, unit = period_and_unit.split(",")
+    period = int(period)
+    
+    if 'created_date' not in dataframe.columns or 'total_price' not in dataframe.columns:
+        raise ValueError("DataFrame must contain 'created_date' and 'total_price' columns.")
+    
+    # Convert the created_date column to datetime
+    dataframe['created_date'] = pd.to_datetime(dataframe['created_date'])
+    
+    # Calculate the start date based on the specified period and unit
+    if unit == "days":
+        start_date = TODAY - timedelta(days=period)
+    elif unit == "months":
+        start_date = TODAY - relativedelta(months=period)
+    elif unit == "years":
+        start_date = TODAY - relativedelta(years=period)
+    else:
+        raise ValueError(f"Invalid unit '{unit}'. Unit must be 'days', 'months', or 'years'.")
+    
+    # Filter receipts by date range
+    filtered_df = dataframe[(dataframe['created_date'] >= start_date) & (dataframe['created_date'] <= TODAY)]
+    
+    # Calculate the total spending
+    total_spend = filtered_df['total_price'].sum()
+    
+    return f"Total spend in the past {period} {unit}: ${total_spend:,.2f}"
 
+@tool
+def get_average_spend(period_and_unit: str) -> str:
+    """
+    Calculates the average spend per receipt within a specified period.
+    
+    Parameters:
+    - period_and_unit (str): A combination of 2 values separated by a comma (without a space).
+        - period: The number of days, months, or years for the date filter.
+        - unit: The time unit for the period, either "days", "months", or "years".
+    """
+    with open("../../data/Receipts.csv", "r", encoding="utf-8") as f:
+        dataframe = pd.read_csv(f)
+        
+    period, unit = period_and_unit.split(",")
+    period = int(period)
+    
+    if 'created_date' not in dataframe.columns or 'total_price' not in dataframe.columns:
+        raise ValueError("DataFrame must contain 'created_date' and 'total_price' columns.")
+    
+    # Convert the created_date column to datetime
+    dataframe['created_date'] = pd.to_datetime(dataframe['created_date'])
+    
+    # Calculate the start date based on the specified period and unit
+    if unit == "days":
+        start_date = TODAY - timedelta(days=period)
+    elif unit == "months":
+        start_date = TODAY - relativedelta(months=period)
+    elif unit == "years":
+        start_date = TODAY - relativedelta(years=period)
+    else:
+        raise ValueError(f"Invalid unit '{unit}'. Unit must be 'days', 'months', or 'years'.")
+    
+    # Filter receipts by date range
+    filtered_df = dataframe[(dataframe['created_date'] >= start_date) & (dataframe['created_date'] <= TODAY)]
+    
+    # Calculate the average spending
+    if len(filtered_df) > 0:
+        average_spend = filtered_df['total_price'].mean()
+        return f"\nAverage spend per receipt in the past {period} {unit}: ${average_spend:,.2f}\n"
+    else:
+        return f"No receipts found in the past {period} {unit}."
+
+@tool
+def get_highest_transaction(period_and_unit: str) -> str:
+    """
+    Retrieves the highest transaction amount within a specified period.
+    
+    Parameters:
+    - period_and_unit (str): A combination of 2 values separated by a comma (without a space).
+        - period: The number of days, months, or years for the date filter.
+        - unit: The time unit for the period, either "days", "months", or "years".
+    """
+    with open("../../data/Receipts.csv", "r", encoding="utf-8") as f:
+        dataframe = pd.read_csv(f)
+        
+    period, unit = period_and_unit.split(",")
+    period = int(period)
+    
+    if 'created_date' not in dataframe.columns or 'total_price' not in dataframe.columns:
+        raise ValueError("DataFrame must contain 'created_date' and 'total_price' columns.")
+    
+    # Convert the created_date column to datetime
+    dataframe['created_date'] = pd.to_datetime(dataframe['created_date'])
+    
+    # Calculate the start date based on the specified period and unit
+    if unit == "days":
+        start_date = TODAY - timedelta(days=period)
+    elif unit == "months":
+        start_date = TODAY - relativedelta(months=period)
+    elif unit == "years":
+        start_date = TODAY - relativedelta(years=period)
+    else:
+        raise ValueError(f"Invalid unit '{unit}'. Unit must be 'days', 'months', or 'years'.")
+    
+    # Filter receipts by date range
+    filtered_df = dataframe[(dataframe['created_date'] >= start_date) & (dataframe['created_date'] <= TODAY)]
+    
+    # Find the highest transaction
+    if len(filtered_df) > 0:
+        highest_transaction = filtered_df['total_price'].max()
+        return f"\nHighest transaction in the past {period} {unit}: ${highest_transaction:,.2f}\n"
+    else:
+        return f"No transactions found in the past {period} {unit}."
+
+@tool
+def detect_spend_outliers(period_and_unit: str) -> str:
+    """
+    Detects unusually high or low transaction amounts (outliers) within a specified period.
+    
+    Parameters:
+    - period_and_unit (str): A combination of 3 values separated by a comma (without a space).
+        - period: The number of days, months, or years for the date filter.
+        - unit: The time unit for the period, either "days", "months", or "years".
+    """
+    with open("../../data/Receipts.csv", "r", encoding="utf-8") as f:
+        dataframe = pd.read_csv(f)
+        
+    period, unit = period_and_unit.split(",")
+    period = int(period)
+    
+    if 'created_date' not in dataframe.columns or 'total_price' not in dataframe.columns:
+        raise ValueError("DataFrame must contain 'created_date' and 'total_price' columns.")
+    
+    # Convert the created_date column to datetime
+    dataframe['created_date'] = pd.to_datetime(dataframe['created_date'])
+    
+    # Calculate the start date based on the specified period and unit
+    if unit == "days":
+        start_date = TODAY - timedelta(days=period)
+    elif unit == "months":
+        start_date = TODAY - relativedelta(months=period)
+    elif unit == "years":
+        start_date = TODAY - relativedelta(years=period)
+    else:
+        raise ValueError(f"Invalid unit '{unit}'. Unit must be 'days', 'months', or 'years'.")
+    
+    # Filter receipts by date range
+    filtered_df = dataframe[(dataframe['created_date'] >= start_date) & (dataframe['created_date'] <= TODAY)]
+    
+    # Calculate the Z-score for the total_price column
+    method = 'Z-score'
+    filtered_df['z_score'] = np.abs((filtered_df['total_price'] - filtered_df['total_price'].mean()) / filtered_df['total_price'].std())
+    outliers = filtered_df[filtered_df['z_score'] > 3]  # Z-score threshold (3 is commonly used for outliers)
+
+    plt.figure(figsize=(12, 6))
+    plt.scatter(filtered_df['created_date'], filtered_df['total_price'], label='Normal Transactions', color='blue', alpha=0.6)
+    plt.scatter(outliers['created_date'], outliers['total_price'], label='Outliers', color='red', alpha=0.8)
+    plt.xlabel('Date')
+    plt.ylabel('Transaction Amount ($)')
+    plt.title(f"Spending Outliers in the Past {period} {unit} (Method: {method})")
+    plt.legend()
+    
+    # Save the plot
+    plt.savefig("../../data/spending_outliers.png")
+    plt.close()
+    
+    # Format the result
+    if not outliers.empty:
+        result = f"Outliers detected in the past {period} {unit}:\n"
+        for _, row in outliers.iterrows():
+            result += f"Date: {row['created_date'].strftime('%Y-%m-%d')}, Amount: ${row['total_price']:,.2f}, Category: {row['category']}, Recipe_ID: {row['receipt_id']}\n"
+    else:
+        result = f"No outliers detected in the past {period} {unit}."
+    
+    return result
+
+@tool
+def plot_rolling_average_spend(period_and_unit: str) -> str:
+    """
+    Generates a line chart showing the rolling average spend over time within a specified period.
+    
+    Parameters:
+    - period_and_unit (str): A combination of 2 values separated by a comma (without a space).
+        - period: The number of days, months, or years for the date filter.
+        - unit: The time unit for the period, either "days", "months", or "years".
+        - window_size : The window size for calculating the rolling average (default is 7 days).
+    """
+    # Load data
+    with open("../../data/Receipts.csv", "r", encoding="utf-8") as f:
+        dataframe = pd.read_csv(f)
+        
+    period, unit, window_size= period_and_unit.split(",")
+    period = int(period)
+    window_size = int(window_size)
+    
+    if 'created_date' not in dataframe.columns or 'total_price' not in dataframe.columns:
+        raise ValueError("DataFrame must contain 'created_date' and 'total_price' columns.")
+    
+    # Convert the created_date column to datetime
+    dataframe['created_date'] = pd.to_datetime(dataframe['created_date'])
+    
+    # Calculate the start date based on the specified period and unit
+    if unit == "days":
+        start_date = TODAY - timedelta(days=period)
+    elif unit == "months":
+        start_date = TODAY - relativedelta(months=period)
+    elif unit == "years":
+        start_date = TODAY - relativedelta(years=period)
+    else:
+        raise ValueError(f"Invalid unit '{unit}'. Unit must be 'days', 'months', or 'years'.")
+    
+    # Filter receipts by date range
+    filtered_df = dataframe[(dataframe['created_date'] >= start_date) & (dataframe['created_date'] <= TODAY)]
+    
+    # Sort by date for proper rolling calculation
+    filtered_df = filtered_df.sort_values('created_date')
+    
+    # Calculate the rolling average
+    filtered_df['rolling_average'] = filtered_df['total_price'].rolling(window=window_size).mean()
+    
+    # Plot the rolling average
+    plt.figure(figsize=(12, 6))
+    plt.plot(filtered_df['created_date'], filtered_df['rolling_average'], label=f'{window_size}-Day Rolling Average', color='blue')
+    plt.xlabel('Date')
+    plt.ylabel('Average Spend ($)')
+    plt.title(f"Rolling {window_size}-Day Average Spend in the past {period} {unit}")
+    plt.legend()
+    plt.grid(True)
+    
+    # Save the plot
+    plt.savefig("../../data/rolling_average_spend.png")
+    plt.close()
+    
+    return f"\nRolling average spend chart saved to ../../data/rolling_average_spend.png.\n"
 
 def infer_llm(query):
-    tools = [get_num_recent_receipts, get_max_category_spending, visualize_top_5]
+    tools = [get_num_recent_receipts, plot_rolling_average_spend, get_max_category_spending, visualize_top_5, get_total_spend,get_average_spend,get_highest_transaction,detect_spend_outliers]
     llm = ChatGoogleGenerativeAI(
         model="gemini-1.5-pro",
         temperature=0,
@@ -171,5 +422,10 @@ def infer_llm(query):
 if __name__ == "__main__":
     # output = infer_llm("Give me receipts from the past 2 months.")
     # output = infer_llm("Where did I spend the most of money from the past 3 months?")
-    output = infer_llm("Visualize top 5 categories from the past 2 months.")
+    # output = infer_llm("Visualize top 5 categories from the past 2 months.")
+    # output = infer_llm("What is the total spend from the past 3 months?")
+    # output = infer_llm("What is the average spend from the past 2 months?")
+    # output = infer_llm("What is the highest transaction from the past 3 months?")
+    # output = infer_llm("Detect spend outliers from the past 2 months.")
+    output = infer_llm("Plot rolling average spend from the past 3 months,7 days")
     print(output)
