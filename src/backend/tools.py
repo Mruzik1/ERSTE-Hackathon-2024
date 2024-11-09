@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from langchain.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI, HarmBlockThreshold, HarmCategory
+from langchain_openai import ChatOpenAI
 from langchain.agents.react.agent import create_react_agent
 from langchain.agents.agent import AgentExecutor
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
@@ -21,6 +22,11 @@ import numpy as np
 load_dotenv(find_dotenv())
 LLM_API_KEY = os.environ.get("GEMINI_API_KEY")
 TODAY = datetime(2024, 11, 8)
+
+
+# def save_output(output: str):
+#     with open("output.txt", "w") as f:
+        
 
 
 @tool
@@ -444,21 +450,15 @@ def infer_llm(query):
         },
     )
     agent = create_react_agent(llm, tools, PROMPT_DATE)
-    
-    def stream_response(response):
-        for token in response.split():
-            yield token + " "
-    
+        
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-    result = agent_executor.stream({"input": query})
+    result = agent_executor.invoke({"input": query})
     
     path = re.findall(r"'(.*?)'", result["output"])
     if len(path) == 0:
-        for token in result["output"]:
-            yield token
+        result["output"]
     else:
-        for token in path[0]:
-            yield token
+        path[0]
 
 
 if __name__ == "__main__":
@@ -469,5 +469,5 @@ if __name__ == "__main__":
     # output = infer_llm("What is the average spend from the past 2 months?")
     # output = infer_llm("What is the highest transaction from the past 3 months?")
     # output = infer_llm("Detect spend outliers from the past 2 months.")
-    output = infer_llm("Plot rolling average spend from the past 3 months,7 days")
+    output = infer_llm("Plot rolling average spend from the past 1 months,7 days")
     print(output)
