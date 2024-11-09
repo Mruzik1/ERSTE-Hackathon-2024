@@ -435,7 +435,7 @@ def infer_llm(query):
         model="gemini-1.5-pro",
         temperature=0,
         api_key=LLM_API_KEY,
-        disable_streaming=False,
+        disable_streaming=True,
         callbacks=[StreamingStdOutCallbackHandler()],
         safety_settings={
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
@@ -456,9 +456,9 @@ def infer_llm(query):
     
     path = re.findall(r"'(.*?)'", result["output"])
     if len(path) == 0:
-        result["output"]
+        return result["output"]
     else:
-        path[0]
+        return path[0]
 
 
 if __name__ == "__main__":

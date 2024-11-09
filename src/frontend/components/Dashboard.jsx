@@ -57,39 +57,17 @@ function Dashboard() {
         },
         body: new URLSearchParams({ prompt: rawText }),
       })
-        .then((response) => {
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let result = '';
-
-          // Функция для чтения потокового ответа
-          function read() {
-            reader.read().then(({ done, value }) => {
-              if (done) {
-                console.log('Stream finished');
-                return;
-              }
-
-              // Декодируем полученные данные
-              const chunk = decoder.decode(value, { stream: true });
-              console.log('Chunk received:', chunk);  
-              result += chunk;
-
-              $("#" + botResponseId).html(result + '<span class="msg_time">' + str_time + '</span>');
-
-              scrollToBottom();
-
-              // Продолжаем чтение потока
-              read();
-            });
-          }
-
-          // Начинаем чтение потокового ответа
-          read();
-        })
-        .catch((error) => {
-          console.error('Error receiving response:', error);
-        });
+      .then(response => response.json()) // Assuming the server sends JSON response
+      .then(data => {
+        const botResponse = data.response; // Assuming the response contains a "message" key
+        // ... (display the bot's response)
+        $("#" + botResponseId).html(botResponse + '<span class="msg_time">' + str_time + '</span>');
+        
+        scrollToBottom();
+      })
+      .catch((error) => {
+        console.error('Error receiving response:', error);
+      });
     });
   }, []);
 

@@ -10,14 +10,9 @@ CORS(app)
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    @stream_with_context
-    def generate_response():
-        prompt = request.form['prompt']
-        for response_chunk in infer_llm(prompt):
-            yield response_chunk
-            
-    return Response(generate_response(), content_type='text/event-stream')
-
+    prompt = request.form['prompt']
+    response = infer_llm(prompt)
+    return jsonify({'response': f"<img src=\"{response}\" alt=\"Plot\" style=\"width: 600px; border-radius: 10%; overflow: hidden;\">" if "../" in response else response})
 
 if __name__ == '__main__':
     app.run(host="localhost", port=5000)
