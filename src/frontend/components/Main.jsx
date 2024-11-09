@@ -128,19 +128,18 @@ const Main = () => {
                         </div>
 
                     </div>
+
                     <div className='flex gap-10 flex-row mt-20'>
                         <button id="bottone1"><strong className='text-white uppercase font-semibold'>About Us</strong></button>
 
                         <div className='flex flex-row  gap-8'>
                             <button id="bottone1"><strong className='text-white uppercase font-semibold'>Read Documentation and FAQ </strong></button>
-                            <button id="bottone1"><strong className='text-white uppercase font-semibold'>Go to AI Dashboard</strong></button>
+                            <a href="http://localhost:3000/dashboard"><button id="bottone1"><strong className='text-white uppercase font-semibold'>Go to AI Dashboard</strong></button></a>
                         </div>
 
                     </div>
+                
                 </div>
-
-
-
             </div>
 
         </div>
